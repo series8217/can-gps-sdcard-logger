@@ -1,0 +1,7 @@
+{
+    "configuration": "flash=2097152_0,freq=125,dbgport=Disabled,dbglvl=None,usbstack=picosdk",
+    "board": "longan-rp2040:longan-rp2040:obd2g2040",
+    "sketch": "log_can_gps.ino",
+    "port": "/dev/tty.usbmodem114101",
+    "output": "./build"
+}

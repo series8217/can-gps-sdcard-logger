@@ -1,0 +1,4 @@
+{
+    "arduino.path": "/usr/local/bin",
+    "arduino.commandPath": "arduino-cli"
+}
