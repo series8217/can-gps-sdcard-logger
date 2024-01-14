@@ -22,6 +22,7 @@
                 "/Users/ssnyder/Library/Arduino15/packages/longan-rp2040/hardware/longan-rp2040/1.0.3/variants/rpipico",
                 "/Users/ssnyder/Library/Arduino15/packages/longan-rp2040/hardware/longan-rp2040/1.0.3/libraries/SPI",
                 "/Users/ssnyder/Documents/Arduino/libraries/mcp_canbus",
+                "/Users/ssnyder/Documents/Arduino/libraries/SdFat/src",
                 "/Users/ssnyder/Library/Arduino15/packages/longan-rp2040/tools/pqt-gcc/1.3.1-a-7855b0c/arm-none-eabi/include/c++/10.3.0",
                 "/Users/ssnyder/Library/Arduino15/packages/longan-rp2040/tools/pqt-gcc/1.3.1-a-7855b0c/arm-none-eabi/include/c++/10.3.0/arm-none-eabi",
                 "/Users/ssnyder/Library/Arduino15/packages/longan-rp2040/tools/pqt-gcc/1.3.1-a-7855b0c/arm-none-eabi/include/c++/10.3.0/backward",
