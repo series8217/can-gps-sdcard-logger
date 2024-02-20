@@ -89,6 +89,20 @@ void print_can_bus_data()
     cout << "}" << endl;
 }
 
+bool can_init(){
+    // start the CAN bus at 500 kbps
+    // if the CAN transceiver isn't working this will loop forever
+    if (CAN_OK != CAN.begin(CAN_500KBPS)) {
+        cout << "CAN init fail... will retry" << endl;
+        return false;
+    }
+    // set the CAN filter/masks to only listen to the messages we want.
+    // we can't service the CAN bus fast enough to record everything.
+    can_bus_set_mask_filter();
+    cout << "CAN init ok!" << endl;
+    return true;
+}
+
 /************************************/
 /**            GPS                  */
 /************************************/
@@ -97,23 +111,12 @@ void setup()
 {
     // console port for debugging
     SERIAL_USB.begin(115200);
-    while (!SERIAL_USB)
-        ;
+    while (!SERIAL_USB){
+        ; // wait for serial port to connect. Needed for native USB
+    }
 
     // the power control pin enables the GPS and CAN transceivers
     digitalWrite(pinPwrCtrl, HIGH);
-
-    // start the CAN bus at 500 kbps
-    // if the CAN transceiver isn't working this will loop forever
-    while (CAN_OK != CAN.begin(CAN_500KBPS))
-    {
-        cout << "CAN init fail, retry..." << endl;
-        delay(500);
-    }
-    // set the CAN filter/masks to only listen to the messages we want.
-    // we can't service the CAN bus fast enough to record everything.
-    can_bus_set_mask_filter();
-    cout << "CAN init ok!" << endl;
 
     // initialize the SD card including checking if it's formatted
     cout << "Initializing SD card..." << endl;
@@ -132,8 +135,22 @@ void setup()
 void loop()
 {
     /** service the GPS serial and print a completed message if there is one */
+    static bool can_ok = false;
+    static int64_t next_can_init = 0;
     char message_buf[GPS_RECV_BUF_LEN];
     message_buf[0] = 0;
+
+    if (!can_ok && millis() > next_can_init){
+        // keep trying to init CAN. we don't wantto hold up the GPS
+        // or other processes though.
+        can_ok = can_init();
+        next_can_init = millis() + 100;
+    }
+
+    if (can_ok){
+        //print_can_bus_data();
+    }
+
     if (receive_gps(message_buf, GPS_RECV_BUF_LEN) > 0)
     {
         GPS_GPRMC gprmc = GPS_GPRMC();
@@ -147,8 +164,12 @@ void loop()
         //     log_file.println(message_buf);
         // }
     }
-    /** print CAN bus data */
-    // print_can_bus_data()
+
+    static int64_t next_heartbeat = 0;
+    if (millis() > next_heartbeat){
+        next_heartbeat = millis() + 1000;
+        cout << "." << endl;
+    }
 }
 
 // END FILE
