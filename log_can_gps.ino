@@ -107,6 +107,16 @@ bool can_init(){
 /**            GPS                  */
 /************************************/
 
+bool gps_init(){
+    // enable the GPS serial port at 9600 baud
+    // IMPROVE: increase the GPS baud rate so it takes less time to
+    //          receive the GPS message
+    cout << "Enabling GPS" << endl;
+    SERIAL_GPS.begin(9600);
+    return true;
+
+}
+
 void setup()
 {
     // console port for debugging
@@ -122,23 +132,17 @@ void setup()
     cout << "Initializing SD card..." << endl;
     setup_sd_card();
 
-    // enable the GPS serial port at 9600 baud
-    // IMPROVE: increase the GPS baud rate so it takes less time to
-    //          receive the GPS message
-    cout << "Enabling GPS" << endl;
-    SERIAL_GPS.begin(9600);
-
     cout << "Starting logging loop..." << endl;
     // when setup returns we enter loop() forever
 }
 
 void loop()
 {
-    /** service the GPS serial and print a completed message if there is one */
+    /************************************/
+    /**            CAN Bus              */
+    /************************************/
     static bool can_ok = false;
     static int64_t next_can_init = 0;
-    char message_buf[GPS_RECV_BUF_LEN];
-    message_buf[0] = 0;
 
     if (!can_ok && millis() > next_can_init){
         // keep trying to init CAN. we don't wantto hold up the GPS
@@ -151,7 +155,17 @@ void loop()
         //print_can_bus_data();
     }
 
-    if (receive_gps(message_buf, GPS_RECV_BUF_LEN) > 0)
+    /***********************************/
+    /**         GPS Serial Port        */
+    /***********************************/
+    static bool gps_ok = false;
+    char message_buf[GPS_RECV_BUF_LEN];
+    message_buf[0] = 0;
+    if (!gps_ok){
+        gps_ok = gps_init();
+    }
+
+    if (gps_ok && receive_gps(message_buf, GPS_RECV_BUF_LEN) > 0)
     {
         GPS_GPRMC gprmc = GPS_GPRMC();
         if (gprmc.parse(message_buf)){
@@ -159,12 +173,19 @@ void loop()
         } else {
             cout << "gps: {" << message_buf << "}" << endl;
         }
-        //cout << "gps: {" << message_buf << "}" << endl;
-        // if (log_file){
-        //     log_file.println(message_buf);
-        // }
     }
 
+    /***********************************/
+    /**           SD Card              */
+    /***********************************/
+    //cout << "gps: {" << message_buf << "}" << endl;
+    // if (log_file){
+    //     log_file.println(message_buf);
+    // }
+
+    /***********************************/
+    /**            Heartbeat           */
+    /***********************************/
     static int64_t next_heartbeat = 0;
     if (millis() > next_heartbeat){
         next_heartbeat = millis() + 1000;
