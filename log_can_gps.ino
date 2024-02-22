@@ -192,7 +192,7 @@ void loop()
     static int64_t next_heartbeat = 0;
     if (millis() > next_heartbeat){
         next_heartbeat = millis() + 1000;
-        cout << "." << endl;
+        //cout << "." << endl;
     }
 }
 
