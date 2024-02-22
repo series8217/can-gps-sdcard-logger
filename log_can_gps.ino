@@ -113,8 +113,10 @@ bool gps_init(){
     //          receive the GPS message
     cout << "Enabling GPS" << endl;
     SERIAL_GPS.begin(9600);
+    while (!SERIAL_GPS){
+        ; // wait for serial port to connect
+    }
     return true;
-
 }
 
 void setup()
