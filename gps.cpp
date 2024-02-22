@@ -3,10 +3,38 @@
 
 #include <cstring>
 
+using namespace std;
+
 // protocol: https://raw.githubusercontent.com/Longan-Labs/OBD-II_Slaver_GPS_kit/master/NEO-6_DataSheet_(GPS.G6-HW-09005).pdf
 
 char gps_message[GPS_RECV_BUF_LEN];
 volatile unsigned int gps_message_length = 0;
+
+char *parseToken(char **str, char delimiter) {
+    /** Like strtok but doesn't skip empty tokens */
+    if (*str == NULL) {
+        // No more tokens
+        return NULL;
+    }
+
+    char *token_start = *str;
+    while (**str != '\0') {
+        if (**str == delimiter) {
+            // End the token here
+            **str = '\0';
+            (*str)++;
+            break;
+        }
+        (*str)++;
+    }
+
+    if (*token_start == '\0') {
+        // This is an empty token
+        token_start = NULL;
+    }
+
+    return token_start;
+}
 
 int receive_gps(char *receive_buf, size_t buf_len)
 {
@@ -118,7 +146,7 @@ bool GPS_GNRMC::parse(char *gps_message) {
     //   (UTC time: 23:59:58, status: A, lat: 37.387458, lat_dir: N,
     //    long: 121.97236, long_dir: W, speed: 0.13, course: 309.62,
     //    date: 27/07/2021)
-    cout << "parsing as GNRMC: " << gps_message << endl;
+
     // the first token is the message type. read everything up to the first
     char *token = parseToken(&gps_message, ',');
     if (token != NULL && strcmp(token,"$GNRMC") != 0){

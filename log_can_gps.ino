@@ -166,15 +166,15 @@ void loop()
     message_buf[0] = 0;
     if (!gps_ok){
         gps_ok = gps_init();
+        GPS_GNRMC GNRMC = GPS_GNRMC();
+        GNRMC.print_columns();
     }
 
     if (gps_ok && receive_gps(message_buf, GPS_RECV_BUF_LEN) > 0)
     {
-        GPS_GPRMC gprmc = GPS_GPRMC();
-        if (gprmc.parse(message_buf)){
-            gprmc.print();
-        } else {
-            cout << "gps: {" << message_buf << "}" << endl;
+        GPS_GNRMC GNRMC = GPS_GNRMC();
+        if (GNRMC.parse(message_buf)){
+            GNRMC.print_csv();
         }
     }
 
