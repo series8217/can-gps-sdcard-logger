@@ -122,7 +122,7 @@ bool gps_init(){
 void setup()
 {
     // console port for debugging
-    SERIAL_USB.begin(115200);
+    SERIAL_USB.begin(230400);
     while (!SERIAL_USB){
         ; // wait for serial port to connect. Needed for native USB
     }
