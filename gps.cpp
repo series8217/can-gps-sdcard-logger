@@ -38,7 +38,6 @@ int receive_gps(char *receive_buf, size_t buf_len)
         gps_message_length++;
         if ((char)next_value == '\n')
         {
-            // SERIAL_USB.write(gps_message);
             message_complete = 1;
             break;
         }
@@ -72,7 +71,7 @@ int receive_gps(char *receive_buf, size_t buf_len)
     return 0;
 }
 
-GPS_GPRMC::GPS_GPRMC() {
+GPS_GNRMC::GPS_GNRMC() {
     utc_time[0] = 0;
     status = 0;
     latitude[0] = 0;
@@ -84,68 +83,90 @@ GPS_GPRMC::GPS_GPRMC() {
     date[0] = 0;
 }
 
-void GPS_GPRMC::print() {
-    cout << "gps: {";
+void GPS_GNRMC::print_columns() {
+    cout << "utc_time,status,lat,lat_dir,long,long_dir,speed_kts,course_deg,date" << endl;
+}
+
+void GPS_GNRMC::print_csv() {
+    cout << utc_time << "," << status << "," << latitude << ","
+         << latitude_direction << "," << longitude << ","
+         << longitude_direction << "," << speed_knots << ","
+         << course_deg << "," << date << endl;
+}
+
+void GPS_GNRMC::print() {
+    cout << "gps $GNRMC: {";
     cout << "utc_time: " << utc_time << ", ";
     cout << "status: " << status << ", ";
-    cout << "latitude: " << latitude << ", ";
-    cout << "latitude_direction: " << latitude_direction << ", ";
-    cout << "longitude: " << longitude << ", ";
-    cout << "longitude_direction: " << longitude_direction << ", ";
-    cout << "speed_knots: " << speed_knots << ", ";
+    cout << "lat: " << latitude << ", ";
+    cout << "lat_dir: " << latitude_direction << ", ";
+    cout << "long: " << longitude << ", ";
+    cout << "long_dir: " << longitude_direction << ", ";
+    cout << "speed_kts: " << speed_knots << ", ";
     cout << "course_deg: " << course_deg << ", ";
     cout << "date: " << date;
     cout << "}" << endl;
 }
 
-bool GPS_GPRMC::parse(char *gps_message) {
-    char *token = strtok(gps_message, ",");
-    if (strcmp(token, "$GPRMC") != 0){
+bool GPS_GNRMC::parse(char *gps_message) {
+    // Parse a GNRMC message.
+    // Example:
+    //   $GNRMC,,V,,,,,,,,,,N,V*37
+    //   (no time, no fix, no speed, no course, no date)
+    //
+    //   $GNRMC,235958.00,A,3723.2475,N,12158.3416,W,0.13,309.62,270721,,,A*6F
+    //   (UTC time: 23:59:58, status: A, lat: 37.387458, lat_dir: N,
+    //    long: 121.97236, long_dir: W, speed: 0.13, course: 309.62,
+    //    date: 27/07/2021)
+    cout << "parsing as GNRMC: " << gps_message << endl;
+    // the first token is the message type. read everything up to the first
+    char *token = parseToken(&gps_message, ',');
+    if (token != NULL && strcmp(token,"$GNRMC") != 0){
         return false;
     }
-    // UTC time
-    token = strtok(NULL, ",");
-    if (token){
+    // next token is the UTC time
+    token = parseToken(&gps_message, ',');
+    if (token != NULL){
         strcpy(utc_time, token);
     }
     // status
-    token = strtok(NULL, ",");
-    if (token){
+    token = parseToken(&gps_message, ',');
+    if (token != NULL){
         status = token[0];
     }
     // latitude
-    token = strtok(NULL, ",");
-    if (token){
+    token = parseToken(&gps_message, ',');
+    if (token != NULL){
         strcpy(latitude, token);
     }
     // latitude direction
-    token = strtok(NULL, ",");
-    if (token){
+    token = parseToken(&gps_message, ',');
+    if (token != NULL){
         latitude_direction = token[0];
     }
     // longitude
-    token = strtok(NULL, ",");
-    if (token){
+    token = parseToken(&gps_message, ',');
+    if (token != NULL){
         strcpy(longitude, token);
     }
     // longitude direction
-    token = strtok(NULL, ",");
-    if (token){
+    token = parseToken(&gps_message, ',');
+    if (token != NULL){
         longitude_direction = token[0];
     }
     // speed in knots
-    token = strtok(NULL, ",");
-    if (token){
+    token = parseToken(&gps_message, ',');
+    if (token != NULL){
         strcpy(speed_knots, token);
     }
     // course in degrees
-    token = strtok(NULL, ",");
-    if (token){
+    token = parseToken(&gps_message, ',');
+    if (token != NULL){
         strcpy(course_deg, token);
     }
     // date
-    token = strtok(NULL, ",");
-    if (token){
+    token = parseToken(&gps_message, ',');
+    if (token != NULL){
         strcpy(date, token);
     }
     return true;

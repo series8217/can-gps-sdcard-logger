@@ -128,6 +128,7 @@ void setup()
     }
 
     // the power control pin enables the GPS and CAN transceivers
+    pinMode(pinPwrCtrl, OUTPUT);
     digitalWrite(pinPwrCtrl, HIGH);
 
     // initialize the SD card including checking if it's formatted
